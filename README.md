@@ -4,9 +4,11 @@
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white)
 ![SimPy](https://img.shields.io/badge/SimPy-discrete--event-orange)
-![Streamlit](https://img.shields.io/badge/Streamlit-web%20app-FF4B4B?logo=streamlit&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://network-performance-analyzer.streamlit.app)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DEVANGDIXIT04/network-performance-analyzer/blob/main/Network_Performance_Analyzer_Colab.ipynb)
 ![License](https://img.shields.io/badge/License-MIT-green)
+
+### 🌐 **Live app: https://network-performance-analyzer.streamlit.app**
 
 A queuing-theory based simulator that models network packet queues, measures
 performance metrics, validates them against closed-form theory, and compares
@@ -86,9 +88,9 @@ streamlit run app.py
 Then open the URL it prints (usually http://localhost:8501). Tabs:
 *Single Simulation · Load Sweep · Server Comparison · TCP vs UDP.*
 
-> **🌐 Live demo:** once deployed to Streamlit Community Cloud the app is
-> reachable at a public `*.streamlit.app` URL — see [`DEPLOY.md`](DEPLOY.md)
-> for the one-time setup. _(Paste your live URL here after deploying.)_
+> **🌐 Live demo:** the app is hosted publicly at
+> **https://network-performance-analyzer.streamlit.app** — no install needed.
+> _(Free tier sleeps after inactivity; click "wake" and it returns in ~30 s.)_
 
 ### ⌨️ B) Menu-driven CLI
 ```bash
