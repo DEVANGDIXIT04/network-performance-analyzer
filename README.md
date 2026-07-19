@@ -9,6 +9,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ### 🌐 **Live app: https://network-performance-analyzer.streamlit.app**
+### ☁️ **Run in Colab: https://colab.research.google.com/github/DEVANGDIXIT04/network-performance-analyzer/blob/main/Network_Performance_Analyzer_Colab.ipynb**
 
 A queuing-theory based simulator that models network packet queues, measures
 performance metrics, validates them against closed-form theory, and compares
