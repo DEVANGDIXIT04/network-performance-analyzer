@@ -86,6 +86,10 @@ streamlit run app.py
 Then open the URL it prints (usually http://localhost:8501). Tabs:
 *Single Simulation · Load Sweep · Server Comparison · TCP vs UDP.*
 
+> **🌐 Live demo:** once deployed to Streamlit Community Cloud the app is
+> reachable at a public `*.streamlit.app` URL — see [`DEPLOY.md`](DEPLOY.md)
+> for the one-time setup. _(Paste your live URL here after deploying.)_
+
 ### ⌨️ B) Menu-driven CLI
 ```bash
 python main.py            # interactive menu
