@@ -48,9 +48,12 @@ NetworkPerformanceAnalyzer/
 ├── app.py                      # 🖥️  Streamlit interactive web frontend
 ├── main.py                     # ⌨️  menu-driven CLI entry point
 ├── Network_Performance_Analyzer_Colab.ipynb   # ☁️  self-contained Colab notebook
+├── Network_Performance_Analyzer_Report.docx   # 📄  full 9-chapter project report
+├── Network_Performance_Analyzer_Presentation.pptx  # 🎤  13-slide presentation deck
 ├── requirements.txt
 ├── README.md
 ├── PRESENTATION_GUIDE.md       # step-by-step demo + viva Q&A
+├── DEPLOY.md                   # how the live app is hosted
 ├── results/                    # graphs are saved here automatically
 └── src/
     ├── traffic_generator.py    # Step 1  Poisson arrivals / exp. service
