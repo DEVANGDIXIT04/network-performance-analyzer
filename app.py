@@ -1,6 +1,7 @@
 """Interactive Streamlit dashboard.  Run: streamlit run app.py"""
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
 
@@ -77,19 +78,12 @@ with tab1:
             st.caption("Small errors confirm the simulation reproduces queuing theory.")
         with c_right:
             served = df[df["served"]]
-            th = theoretical.analyse(lam, mu, c=c, K=K)
-            err = abs(m["avg_delay"] - th["W"]) / th["W"] * 100
             fig, ax = plt.subplots(figsize=(5, 3.6))
             ax.hist(served["sojourn_time"], bins=40, color="#4C72B0", edgecolor="white")
-            ax.axvline(m["avg_delay"], color="red", ls="--", lw=2,
-                       label=f"Simulated = {m['avg_delay']:.3f} s")
-            ax.axvline(th["W"], color="green", ls=":", lw=2,
-                       label=f"Theory = {th['W']:.3f} s")
-            ax.text(0.96, 0.62, f"match within {err:.1f}%", transform=ax.transAxes,
-                    ha="right", fontsize=9, fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.35", fc="#FFF3CD", ec="#B8860B"))
+            ax.axvline(m["avg_delay"], color="red", ls="--",
+                       label=f"mean = {m['avg_delay']:.3f}s")
             ax.set_xlabel("Time in system  W  (s)"); ax.set_ylabel("Packets")
-            ax.set_title("Distribution of packet delay"); ax.legend(fontsize=8)
+            ax.set_title("Distribution of packet delay"); ax.legend()
             fig.tight_layout()
             st.pyplot(fig)
 
@@ -123,26 +117,23 @@ with tab2:
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
     ax1.plot(rhos, th_delay, "b-", label="Theory"); ax1.plot(rhos, sim_delay, "ro", label="Simulation")
-    ax1.annotate(f"{sim_delay[0]:.3f} s\nlight load", xy=(rhos[0], sim_delay[0]),
-                 xytext=(rhos[0] + 0.10, max(sim_delay) * 0.30), fontsize=9,
-                 arrowprops=dict(arrowstyle="->", color="black"),
-                 bbox=dict(boxstyle="round,pad=0.3", fc="#E8F5E9", ec="green"))
-    ax1.annotate(f"{sim_delay[-1]:.3f} s\n{growth:.0f}× higher", xy=(rhos[-1], sim_delay[-1]),
-                 xytext=(rhos[-1] - 0.45, max(sim_delay) * 0.78), fontsize=9, fontweight="bold",
-                 arrowprops=dict(arrowstyle="->", color="black"),
-                 bbox=dict(boxstyle="round,pad=0.3", fc="#FDECEA", ec="red"))
     ax1.set_xlabel("Traffic intensity  ρ"); ax1.set_ylabel("Avg delay W (s)")
-    ax1.set_title("Delay vs Load"); ax1.grid(alpha=0.3); ax1.legend(fontsize=8)
-
+    ax1.set_title("Delay vs Load"); ax1.grid(alpha=0.3); ax1.legend()
     ax2.plot(rhos, th_thr, "g-", label="Theory"); ax2.plot(rhos, sim_thr, "ks", label="Simulation")
-    ax2.annotate(f"{sim_thr[-1]:.1f} pkt/s", xy=(rhos[-1], sim_thr[-1]),
-                 xytext=(rhos[-1] - 0.24, sim_thr[-1] * 0.32), fontsize=9, fontweight="bold",
-                 arrowprops=dict(arrowstyle="->", color="black"),
-                 bbox=dict(boxstyle="round,pad=0.3", fc="#EAF0FB", ec="#1B6CA8"))
     ax2.set_xlabel("Traffic intensity  ρ"); ax2.set_ylabel("Throughput (pkt/s)")
-    ax2.set_title("Throughput vs Load"); ax2.grid(alpha=0.3); ax2.legend(fontsize=8)
+    ax2.set_title("Throughput vs Load"); ax2.grid(alpha=0.3); ax2.legend()
     fig.tight_layout()
     st.pyplot(fig)
+
+    st.markdown("**Values behind the graph**")
+    st.dataframe(pd.DataFrame({
+        "ρ (load)": [f"{r:.2f}" for r in rhos],
+        "λ (pkt/s)": [f"{l:.1f}" for l in lams],
+        "Delay – simulated (ms)": [f"{v*1000:.1f}" for v in sim_delay],
+        "Delay – theory (ms)": [f"{v*1000:.1f}" for v in th_delay],
+        "Error (ms)": [f"{abs(a-b)*1000:.1f}" for a, b in zip(sim_delay, th_delay)],
+        "Throughput (pkt/s)": [f"{v:.2f}" for v in sim_thr],
+    }), use_container_width=True, hide_index=True)
     st.info(f"Delay grows **{growth:.0f}×** (from {sim_delay[0]*1000:.0f} ms to "
             f"{sim_delay[-1]*1000:.0f} ms) while ρ goes {rhos[0]:.2f} → {rhos[-1]:.2f}. "
             "That sharp rise is the queuing **'knee'**.")
@@ -156,19 +147,14 @@ with tab3:
         rhos = np.linspace(0.1, 0.9, 9)
         fig, ax = plt.subplots(figsize=(9, 4.5))
         colors = ["#C44E52", "#4C72B0", "#55A868", "#8172B3"]
-        end_vals = {}
+        end_vals, table = {}, {"ρ (load)": [f"{r:.1f}" for r in rhos]}
         for i, cc in enumerate(sorted(servers)):
             delays = [theoretical.analyse(r * cc * mu, mu, c=cc)["W"] for r in rhos]
             end_vals[cc] = delays[-1]
+            table[f"M/M/{cc} delay (ms)"] = [f"{v*1000:.0f}" for v in delays]
             ax.plot(rhos, delays, "o-", color=colors[i % 4], label=f"M/M/{cc}")
-            ax.annotate(f"{delays[-1]*1000:.0f} ms", xy=(rhos[-1], delays[-1]),
-                        xytext=(6, 0), textcoords="offset points", va="center",
-                        fontsize=9, fontweight="bold", color=colors[i % 4])
-        ax.axvline(0.9, color="grey", ls=":", lw=1)
-        ax.set_xlim(0.05, 1.02)
         ax.set_xlabel("Traffic intensity  ρ"); ax.set_ylabel("Avg delay W (s)")
-        ax.set_title("Average delay vs load  (values shown at ρ = 0.9)")
-        ax.grid(alpha=0.3); ax.legend()
+        ax.set_title("Average delay vs load"); ax.grid(alpha=0.3); ax.legend()
         fig.tight_layout()
         st.pyplot(fig)
 
@@ -176,8 +162,10 @@ with tab3:
         base = end_vals[min(end_vals)]
         for col, (cc, v) in zip(cols, sorted(end_vals.items())):
             col.metric(f"M/M/{cc} at ρ=0.9", f"{v*1000:.0f} ms",
-                       delta=None if v == base else f"{base/v:.1f}× faster",
-                       delta_color="normal")
+                       delta=None if v == base else f"{base/v:.1f}× faster")
+
+        st.markdown("**Values behind the graph**")
+        st.dataframe(pd.DataFrame(table), use_container_width=True, hide_index=True)
         st.info("Same load per server, but more servers means far less waiting — "
                 "the delay drops sharply going from one server to two.")
 
@@ -206,39 +194,29 @@ with tab4:
 
     fig, (a1, a2, a3) = plt.subplots(1, 3, figsize=(14, 4))
     a1.plot(rr, res["tcp_goodput"], "b-o", label="TCP"); a1.plot(rr, res["udp_goodput"], "r-s", label="UDP")
-    a1.axhline(cap, color="gray", ls="--", label=f"Capacity = {cap:.0f} pkt/s")
-    a1.annotate(f"both saturate\nat ~{cap:.0f} pkt/s", xy=(rr.iloc[-1], cap),
-                xytext=(rr.iloc[-1] - 0.85, cap * 0.55), fontsize=9,
-                arrowprops=dict(arrowstyle="->", color="black"),
-                bbox=dict(boxstyle="round,pad=0.3", fc="#EFEFEF", ec="grey"))
+    a1.axhline(cap, color="gray", ls="--", label="Capacity")
     a1.set_title("Goodput vs Load"); a1.set_xlabel("Offered load ρ")
-    a1.set_ylabel("Goodput (pkt/s)"); a1.grid(alpha=0.3); a1.legend(fontsize=8)
-
+    a1.set_ylabel("Goodput (pkt/s)"); a1.grid(alpha=0.3); a1.legend()
     a2.plot(rr, res["tcp_delay"], "b-o", label="TCP"); a2.plot(rr, res["udp_delay"], "r-s", label="UDP")
-    a2.annotate(f"TCP {tcp_end_delay:.2f} s", xy=(rr.iloc[-1], tcp_end_delay),
-                xytext=(rr.iloc[-1] - 0.95, tcp_end_delay * 0.80), fontsize=9, fontweight="bold",
-                arrowprops=dict(arrowstyle="->", color="blue"),
-                bbox=dict(boxstyle="round,pad=0.3", fc="#EAF0FB", ec="blue"))
-    a2.annotate(f"UDP {udp_end_delay:.2f} s", xy=(rr.iloc[-1], udp_end_delay),
-                xytext=(rr.iloc[-1] - 1.15, udp_end_delay * 0.12), fontsize=9, fontweight="bold",
-                arrowprops=dict(arrowstyle="->", color="red"),
-                bbox=dict(boxstyle="round,pad=0.3", fc="#FDECEA", ec="red"))
     a2.set_title("Delay vs Load"); a2.set_xlabel("Offered load ρ")
-    a2.set_ylabel("Avg delay (s)"); a2.grid(alpha=0.3); a2.legend(fontsize=8)
-
+    a2.set_ylabel("Avg delay (s)"); a2.grid(alpha=0.3); a2.legend()
     a3.plot(rr, res["tcp_loss"] * 100, "b-o", label="TCP"); a3.plot(rr, res["udp_loss"] * 100, "r-s", label="UDP")
-    a3.annotate(f"UDP loses {udp_peak_loss:.0f}%", xy=(rr.iloc[-1], udp_peak_loss),
-                xytext=(rr.iloc[-1] - 1.05, udp_peak_loss * 0.72), fontsize=9, fontweight="bold",
-                arrowprops=dict(arrowstyle="->", color="red"),
-                bbox=dict(boxstyle="round,pad=0.3", fc="#FDECEA", ec="red"))
-    a3.annotate("TCP ≈ 0% (retransmits)", xy=(rr.iloc[len(rr) // 2], 0),
-                xytext=(rr.iloc[1], udp_peak_loss * 0.32), fontsize=9, fontweight="bold",
-                arrowprops=dict(arrowstyle="->", color="blue"),
-                bbox=dict(boxstyle="round,pad=0.3", fc="#EAF0FB", ec="blue"))
     a3.set_title("Packet Loss vs Load"); a3.set_xlabel("Offered load ρ")
-    a3.set_ylabel("Loss (%)"); a3.grid(alpha=0.3); a3.legend(fontsize=8)
+    a3.set_ylabel("Loss (%)"); a3.grid(alpha=0.3); a3.legend()
     fig.tight_layout()
     st.pyplot(fig)
+
+    st.markdown("**Values behind the graph**")
+    st.dataframe(pd.DataFrame({
+        "ρ (offered)": [f"{v:.2f}" for v in rr],
+        "λ (pkt/s)": [f"{v:.1f}" for v in res["lambda"]],
+        "TCP goodput": [f"{v:.2f}" for v in res["tcp_goodput"]],
+        "UDP goodput": [f"{v:.2f}" for v in res["udp_goodput"]],
+        "TCP delay (s)": [f"{v:.3f}" for v in res["tcp_delay"]],
+        "UDP delay (s)": [f"{v:.3f}" for v in res["udp_delay"]],
+        "TCP loss %": [f"{v*100:.1f}" for v in res["tcp_loss"]],
+        "UDP loss %": [f"{v*100:.1f}" for v in res["udp_loss"]],
+    }), use_container_width=True, hide_index=True)
     st.success(f"**The trade-off in numbers:** at maximum load UDP threw away "
                f"**{udp_peak_loss:.0f}%** of packets but stayed at {udp_end_delay:.2f} s. "
                f"TCP delivered **100%** of the data, but its delay climbed to "
